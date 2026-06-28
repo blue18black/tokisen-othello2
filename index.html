@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+    <title>ジャケ写オセロ</title>
+    <style>
+        :root{
+            --orange:#FF9300;
+            --orange-deep:#E67E00;
+            --orange-soft:#FFC267;
+            --cream:#FFF8EF;
+            --ink:#4A2F12;
+            --shadow-md:0 10px 25px rgba(166,90,0,.25);
+            --shadow-sm:0 4px 10px rgba(166,90,0,.18);
+            --radius-lg:24px;
+            --radius-md:16px;
+        }
+        *{
+            box-sizing:border-box;
+        }
+        html{
+            font-size:16px;
+        }
+        body{
+            margin:0;
+            min-height:100vh;
+            overflow-x:hidden;
+            font-family:'M PLUS Rounded 1c','Hiragino Maru Gothic ProN',sans-serif;
+            background:linear-gradient(160deg,#FFC267 0%,#FF9300 45%,#FF7A00 100%);
+            color:var(--ink);
+        }
+        .app-shell{
+            max-width:900px;
+            margin:0 auto;
+        }
+        .app-header{
+            text-align:center;
+            padding:8px 16px 0;
+        }
+        #title{
+            margin:0;
+            font-size:1.5rem;
+            font-weight:800;
+            color:#fff;
+            text-shadow:0 3px 0 rgba(166,90,0,.4);
+            letter-spacing:.04em;
+        }
+        .app-subtitle{
+            margin:2px 0 0;
+            color:#fff7ea;
+            font-size:.85rem;
+            font-weight:400;
+        }
+
+        /* ファースト画面 */
+        #centerbtn{
+            display:flex;
+            justify-content:center;
+            align-items:stretch;
+            gap:10px;
+            flex-wrap:wrap;
+            padding:4px 16px;
+            height:auto;
+        }
+        #margin{
+            display:none;
+        }
+        #leftbtn, #rightbtn{
+            flex:1 1 280px;
+            max-width:440px;
+            background:var(--cream);
+            border-radius:var(--radius-lg);
+            box-shadow:var(--shadow-md);
+            padding:8px 14px;
+            height:auto;
+        }
+        #leftbtn > div, #rightbtn > div{
+            width:100%;
+        }
+        #playerAname, #playerBname{
+            font-weight:800;
+            color:var(--orange-deep);
+            font-size:1rem;
+            line-height:1.3;
+            margin-bottom:6px;
+        }
+        select#playerA, select#playerB{
+            width:100%;
+            padding:8px 36px 8px 14px;
+            border:2px solid var(--orange-soft);
+            border-radius:12px;
+            background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23E67E00' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 10px center;
+            background-size:16px;
+            appearance:none;
+            -webkit-appearance:none;
+            -moz-appearance:none;
+            font-family:inherit;
+            font-size:.92rem;
+            color:var(--ink);
+            cursor:pointer;
+            transition:border-color .15s ease, box-shadow .15s ease;
+        }
+        select#playerA:focus, select#playerB:focus{
+            outline:none;
+            border-color:var(--orange-deep);
+            box-shadow:0 0 0 3px rgba(255,147,0,.25);
+        }
+        .textcenter{
+            display:flex;
+            justify-content:center;
+            align-items:center;
+        }
+        .float-left{
+            float:left;
+        }
+        #prebtn{
+            display:none;
+        }
+        .preview-stage{
+            position:relative;
+        }
+        #picture{
+            position:relative;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            gap:10px;
+            flex-wrap:wrap;
+            padding:6px 16px 2px;
+        }
+        #leftpc, #rightpc{
+            flex:1 1 280px;
+            max-width:440px;
+            display:flex;
+            justify-content:center;
+            height:auto;
+        }
+        #ontheleftpc, #ontherightpc{
+            width:min(100%, 70vh, 42vw);
+            aspect-ratio:1/1;
+            background-color:#fff;
+            background-size:cover;
+            background-position:center;
+            border-radius:var(--radius-md);
+            box-shadow:var(--shadow-sm);
+            border:4px solid #fff;
+        }
+        #vs{
+            position:absolute;
+            top:50%;
+            left:50%;
+            transform:translate(-50%, -50%);
+            width:40px;
+            height:40px;
+            border-radius:50%;
+            background:#fff;
+            color:var(--orange-deep);
+            font-weight:800;
+            font-size:.95rem;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            box-shadow:var(--shadow-sm);
+        }
+        #message{
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            padding:6px 16px 6px;
+            height:auto;
+        }
+        #hitokoto{
+            background:#fff;
+            color:var(--ink);
+            font-weight:700;
+            font-size:.9rem;
+            padding:6px 16px;
+            border-radius:999px;
+            box-shadow:var(--shadow-sm);
+            width:auto;
+            height:auto;
+            text-align:center;
+        }
+        #start{
+            position:absolute;
+            top:0;
+            bottom:0;
+            left:50%;
+            margin-top:auto;
+            margin-bottom:auto;
+            margin-left:-50vw;
+            width:100vw;
+            aspect-ratio:2560/669;
+            max-height:42vh;
+            z-index:5;
+            background-image:url("img/素材.png");
+            background-size:cover;
+            background-position:center;
+            background-repeat:no-repeat;
+            opacity:.99;
+            cursor:pointer;
+        }
+        .none{
+            display:none;
+        }
+        #start.show{
+            animation:slideIn .3s forwards;
+        }
+        @keyframes slideIn{
+            from{ transform:translateX(-1000px); }
+            to{ transform:translateX(0); }
+        }
+        #start.shake{
+            animation:shake .4s;
+        }
+        @keyframes shake{
+            0%{ transform:translateX(0) translateY(0); }
+            25%{ transform:translateX(-15px) translateY(-5px); }
+            50%{ transform:translateX(5px) translateY(5px); }
+            75%{ transform:translateX(-5px) translateY(-5px); }
+            100%{ transform:translateX(0) translateY(0); }
+        }
+
+        /* セカンド画面 */
+        #fixed{
+            position:sticky;
+            top:0;
+            z-index:10;
+            background:linear-gradient(135deg,var(--orange),var(--orange-deep));
+            padding:14px 16px 16px;
+            border-radius:0 0 var(--radius-lg) var(--radius-lg);
+            box-shadow:var(--shadow-md);
+            height:auto;
+            width:auto;
+        }
+        #result{
+            height:auto;
+            width:100%;
+        }
+        #result-text{
+            width:100%;
+            height:auto;
+            flex-direction:column;
+            gap:2px;
+        }
+        #turn{
+            margin:0;
+            font-size:1.15rem;
+            font-weight:700;
+            color:#fff;
+            text-align:center;
+        }
+        #situation{
+            margin:0;
+            font-size:1rem;
+            color:#fff7ea;
+            min-height:1.2em;
+            text-align:center;
+        }
+        #contents{
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            gap:24px;
+            margin-top:10px;
+            height:auto;
+            width:100%;
+        }
+        #left, #right{
+            display:flex;
+            align-items:center;
+            gap:8px;
+            background:rgba(255,255,255,.18);
+            padding:6px 16px 6px 6px;
+            border-radius:999px;
+        }
+        .image{
+            height:48px;
+            width:48px;
+            border-radius:50%;
+            background-size:cover;
+            background-position:center;
+            border:3px solid #fff;
+        }
+        .score-value{
+            font-size:1.4rem;
+            font-weight:800;
+            color:#fff;
+            min-width:1.4em;
+            text-align:center;
+        }
+        #osero{
+            height:auto;
+            width:100%;
+            padding-top:2px;
+        }
+        .container{
+            display:flex;
+            justify-content:center;
+            align-items:center;
+        }
+        #board{
+            box-sizing:border-box;
+            width:calc(24rem + 16px);
+            height:calc(24rem + 16px);
+            padding:8px;
+            margin:8px auto 0;
+            background:linear-gradient(145deg,#2f8049,#1f5c33);
+            border-radius:var(--radius-md);
+            box-shadow:var(--shadow-md);
+            overflow:hidden;
+        }
+        .board-row{
+            font-size:0;
+        }
+        .square{
+            width:3rem;
+            height:3rem;
+            margin:0;
+            padding:0;
+            border:1px solid rgba(0,0,0,.25);
+            background-color:rgba(255,255,255,.06);
+            box-shadow:none !important;
+            transition:filter .15s ease;
+        }
+        .square[data-owner="black"]{
+            background-image:none;
+            background:radial-gradient(circle at 35% 30%, #555, #000 70%);
+            background-size:cover;
+        }
+        .square[data-owner="white"]{
+            background-image:none;
+            background:radial-gradient(circle at 35% 30%, #fff, #ddd 70%);
+            background-size:cover;
+        }
+        .can-select{
+            background-color:var(--orange-soft);
+            cursor:pointer;
+        }
+        .can-select:hover{
+            filter:brightness(1.15);
+        }
+        .cant-select{
+            background-color:rgba(0,0,0,.15) !important;
+            cursor:default;
+        }
+        .board-lock{
+            pointer-events:none;
+        }
+        @keyframes piecePop{
+            from{ transform:scale(.3); opacity:.4; }
+            to{ transform:scale(1); opacity:1; }
+        }
+        .piece-pop{
+            animation:piecePop .25s ease-out;
+        }
+        #controller{
+            position:fixed;
+            top:12px;
+            left:12px;
+            display:flex;
+            gap:8px;
+            z-index:20;
+        }
+        .btn-controller{
+            border:none;
+            border-radius:999px;
+            padding:8px 16px;
+            font-family:inherit;
+            font-weight:700;
+            font-size:.85rem;
+            background:#fff;
+            color:var(--orange-deep);
+            box-shadow:var(--shadow-sm);
+            cursor:pointer;
+            transition:transform .15s ease;
+        }
+        .btn-controller:hover{
+            transform:translateY(-2px);
+        }
+        .btn-controller:active{
+            transform:translateY(0);
+        }
+
+        @media (max-width:480px){
+            html{ font-size:14px; }
+        }
+        @media (max-width:380px){
+            html{ font-size:12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <div id="firstgamen">
+            <header class="app-header">
+                <h1 id="title">ジャケ写オセロ</h1>
+                <p class="app-subtitle">好きなジャケットを選んでバトルしよう♡</p>
+            </header>
+            <div id="centerbtn">
+                <div id="leftbtn" class="float-left">
+                    <div>
+                        <div id="playerAname" class="textcenter">Player A</div>
+                        <select id="playerA" class="textcenter">
+                            <option value="" hidden>選択してください</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="margin" class="float-left"></div>
+                <div id="rightbtn" class="float-left">
+                    <div>
+                        <div id="playerBname" class="textcenter">Player B</div>
+                        <select id="playerB" class="textcenter">
+                            <option value="" hidden>選択してください</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div id="prebtn"></div>
+            <div class="preview-stage">
+                <div id="picture">
+                    <div id="leftpc" class="float-left">
+                        <div id="ontheleftpc"></div>
+                    </div>
+                    <div id="vs" class="float-left">VS</div>
+                    <div id="rightpc" class="float-left">
+                        <div id="ontherightpc"></div>
+                    </div>
+                </div>
+                <div id="start" class="none"></div>
+            </div>
+            <!-- <div id="message">
+                <div id="hitokoto">好きなジャケ写を選べ！</div>
+            </div> -->
+        </div>
+        <div id="secondgamen" class="none">
+            <div id="fixed">
+                <div id="result">
+                    <div id="result-text">
+                        <h1 id="turn">オセロ</h1>
+                        <h1 id="situation"></h1>
+                    </div>
+                </div>
+                <div id="contents">
+                    <div id="left" class="float-left">
+                        <div id="playerAimage" class="image"></div>
+                        <div class="score-value t-score">2</div>
+                    </div>
+                    <div id="right" class="float-left">
+                        <div id="playerBimage" class="image"></div>
+                        <div class="score-value a-score">2</div>
+                    </div>
+                </div>
+            </div>
+            <div id="osero">
+                <div class="container">
+                    <div id="board">
+                        <div class="board-row">
+                            <button type="button" class="square" data-row="0" data-col="0"></button>
+                            <button type="button" class="square" data-row="0" data-col="1"></button>
+                            <button type="button" class="square" data-row="0" data-col="2"></button>
+                            <button type="button" class="square" data-row="0" data-col="3"></button>
+                            <button type="button" class="square" data-row="0" data-col="4"></button>
+                            <button type="button" class="square" data-row="0" data-col="5"></button>
+                            <button type="button" class="square" data-row="0" data-col="6"></button>
+                            <button type="button" class="square" data-row="0" data-col="7"></button>
+                        </div>
+                        <div class="board-row">
+                            <button type="button" class="square" data-row="1" data-col="0"></button>
+                            <button type="button" class="square" data-row="1" data-col="1"></button>
+                            <button type="button" class="square" data-row="1" data-col="2"></button>
+                            <button type="button" class="square" data-row="1" data-col="3"></button>
+                            <button type="button" class="square" data-row="1" data-col="4"></button>
+                            <button type="button" class="square" data-row="1" data-col="5"></button>
+                            <button type="button" class="square" data-row="1" data-col="6"></button>
+                            <button type="button" class="square" data-row="1" data-col="7"></button>
+                        </div>
+                        <div class="board-row">
+                            <button type="button" class="square" data-row="2" data-col="0"></button>
+                            <button type="button" class="square" data-row="2" data-col="1"></button>
+                            <button type="button" class="square" data-row="2" data-col="2"></button>
+                            <button type="button" class="square" data-row="2" data-col="3"></button>
+                            <button type="button" class="square" data-row="2" data-col="4"></button>
+                            <button type="button" class="square" data-row="2" data-col="5"></button>
+                            <button type="button" class="square" data-row="2" data-col="6"></button>
+                            <button type="button" class="square" data-row="2" data-col="7"></button>
+                        </div>
+                        <div class="board-row">
+                            <button type="button" class="square" data-row="3" data-col="0"></button>
+                            <button type="button" class="square" data-row="3" data-col="1"></button>
+                            <button type="button" class="square" data-row="3" data-col="2"></button>
+                            <button type="button" class="square" data-row="3" data-col="3"></button>
+                            <button type="button" class="square" data-row="3" data-col="4"></button>
+                            <button type="button" class="square" data-row="3" data-col="5"></button>
+                            <button type="button" class="square" data-row="3" data-col="6"></button>
+                            <button type="button" class="square" data-row="3" data-col="7"></button>
+                        </div>
+                        <div class="board-row">
+                            <button type="button" class="square" data-row="4" data-col="0"></button>
+                            <button type="button" class="square" data-row="4" data-col="1"></button>
+                            <button type="button" class="square" data-row="4" data-col="2"></button>
+                            <button type="button" class="square" data-row="4" data-col="3"></button>
+                            <button type="button" class="square" data-row="4" data-col="4"></button>
+                            <button type="button" class="square" data-row="4" data-col="5"></button>
+                            <button type="button" class="square" data-row="4" data-col="6"></button>
+                            <button type="button" class="square" data-row="4" data-col="7"></button>
+                        </div>
+                        <div class="board-row">
+                            <button type="button" class="square" data-row="5" data-col="0"></button>
+                            <button type="button" class="square" data-row="5" data-col="1"></button>
+                            <button type="button" class="square" data-row="5" data-col="2"></button>
+                            <button type="button" class="square" data-row="5" data-col="3"></button>
+                            <button type="button" class="square" data-row="5" data-col="4"></button>
+                            <button type="button" class="square" data-row="5" data-col="5"></button>
+                            <button type="button" class="square" data-row="5" data-col="6"></button>
+                            <button type="button" class="square" data-row="5" data-col="7"></button>
+                        </div>
+                        <div class="board-row">
+                            <button type="button" class="square" data-row="6" data-col="0"></button>
+                            <button type="button" class="square" data-row="6" data-col="1"></button>
+                            <button type="button" class="square" data-row="6" data-col="2"></button>
+                            <button type="button" class="square" data-row="6" data-col="3"></button>
+                            <button type="button" class="square" data-row="6" data-col="4"></button>
+                            <button type="button" class="square" data-row="6" data-col="5"></button>
+                            <button type="button" class="square" data-row="6" data-col="6"></button>
+                            <button type="button" class="square" data-row="6" data-col="7"></button>
+                        </div>
+                        <div class="board-row">
+                            <button type="button" class="square" data-row="7" data-col="0"></button>
+                            <button type="button" class="square" data-row="7" data-col="1"></button>
+                            <button type="button" class="square" data-row="7" data-col="2"></button>
+                            <button type="button" class="square" data-row="7" data-col="3"></button>
+                            <button type="button" class="square" data-row="7" data-col="4"></button>
+                            <button type="button" class="square" data-row="7" data-col="5"></button>
+                            <button type="button" class="square" data-row="7" data-col="6"></button>
+                            <button type="button" class="square" data-row="7" data-col="7"></button>
+                        </div>
+                    </div>
+                </div>
+                <div id="controller">
+                    <button type="button" id="btn-initialize" class="btn-controller">リセット</button>
+                    <button type="button" id="gotohome" class="btn-controller">ホーム</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js" crossorigin="anonymous"></script>
+    <script>
+        //定数
+        //マスの状態
+        const SQUARE_STATUS_IS_OWNED="01";//自分が所有
+        const SQUARE_STATUS_IS_OTHER="02";//相手が所有
+        const SQUARE_STATUS_NOT_SELECTED="09";//選択されてない
+        //8方向（上,下,左,右,左上,右上,左下,右下）
+        const DIRECTIONS=[
+            {dRow:-1, dCol: 0}, {dRow: 1, dCol: 0},
+            {dRow: 0, dCol:-1}, {dRow: 0, dCol: 1},
+            {dRow:-1, dCol:-1}, {dRow:-1, dCol: 1},
+            {dRow: 1, dCol:-1}, {dRow: 1, dCol: 1},
+        ];
+
+        //変数
+        //ターンを示す変数
+        let isOddTurn=true;
+        let nowplayer, notplayer;
+
+        //category: プルダウンに表示するグループ名（未指定の曲は一覧に表示されない）
+        const informations=[
+            {value:"sin-1", name:"ファーストシングル「土っキュン♡!!少女」", image:"img/sin-1.jpg", color:"#FF9300", category:"SINGLE"},
+            {value:"sin-2", name:"セカンドシングル 「季節外れのときめき♡サマー」", image:"img/sin-2.jpg", color:"#FF9300", category:"SINGLE"},
+            {value:"sin-3", name:"サードシングル「むてきのうた」", image:"img/sin-3.jpg", color:"#FF9300", category:"SINGLE"},
+            {value:"sin-4", name:"メジャーファーストシングル「ガンバ!!」", image:"img/sin-4.jpg", color:"#FF9300", category:"SINGLE"},
+            {value:"sin-5", name:"メジャーセカンドシングル「どどどどどりーまー」", image:"img/sin-5.jpg", color:"#FF9300", category:"SINGLE"},
+            {value:"sin-6", name:"メジャーサードシングル「DEADHEAT」", image:"img/sin-6.jpg", color:"#FF9300", category:"SINGLE"},
+            {value:"sin-7", name:"「ときめき♡宣伝部のVICTORY STORY / 青春ハートシェイカー」", image:"img/sin-7.jpg", color:"#FF9300", category:"SINGLE"},
+            {value:"sin-8", name:"avex 2nd Single「恋のシェイプアップ♡」", image:"img/sin-8.jpg", color:"#FF9300", category:"SINGLE"},
+            {value:"sin-9", name:"新体制によるニューシングル『トゥモロー最強説!!』", image:"img/sin-9.gif", color:"#FF9300", category:"SINGLE"},
+            {value:"sin-10", name:"Single「STAR」", image:"img/sin-10.jpg", color:"#FF9300", category:"SINGLE"},
+            {value:"sin-11", name:"LOVEイヤイヤ期", image:"img/sin-11.jpg", color:"#FF9300", category:"SINGLE"},
+            {value:"sin-12", name:"かわいいメモリアル", image:"img/sin-12.jpg", color:"#FF9300", category:"SINGLE"},
+            {value:"sin-13", name:"最上級にかわいいの！", image:"img/sin-13.jpg", color:"#FF9300", category:"SINGLE"},
+            {value:"sin-14", name:"世界でいちばんアイドル/ひみつのふふふ", image:"img/sin-14.jpg", color:"#FF9300", category:"SINGLE"},
+            {value:"sin-15", name:"ハニートリガー", image:"img/sin-15.jpg", color:"#C7091D", category:"SINGLE"},
+            {value:"sin-16", name:"TwinkleStart", image:"img/sin-16.jpeg", color:"#FF9300", category:"SINGLE"},
+            {value:"sin-17", name:"ハートな胸の内♡/超最強", image:"img/sin-17.jpg", color:"#FF9300", category:"SINGLE"},
+            {value:"sin-18", name:"どりーむじゃんぼ！", image:"img/sin-18.jpg", color:"#FF9300", category:"SINGLE"},
+            {value:"al-1", name:"「ときめき♡宣伝部のどきどき♡クリスマスパーティーvol.2」Blu-ray&DVD", image:"img/al-1.png", color:"#FF9300"},
+            {value:"al-2", name:"メジャーファーストアルバム「ときおとめ」", image:"img/al-2.jpg", color:"#FF9300", category:"ALBUM"},
+            {value:"al-3", name:"avex 1st Album「ときめきがすべて」", image:"img/al-3.jpg", color:"#FF9300", category:"ALBUM"},
+            {value:"al-4", name:"ときめく恋と青春", image:"img/al-4.jpg", color:"#FF9300", category:"ALBUM"},
+            {value:"al-5", name:"ときめきルールブック", image:"img/al-5.jpg", color:"#FF9300", category:"ALBUM"},
+            {value:"al-6", name:"ときめきえがお", image:"img/al-6.jpg", color:"#FF9300", category:"ALBUM"},
+            {value:"mal-1", name:"Mini Album「すきすきすきすきすきすきっ！」", image:"img/mal-1.jpg", color:"#FF9300"},
+            {value:"mal-2", name:"ミニアルバム 「ハートギュッと！」", image:"img/mal-2.jpg", color:"#FF9300"},
+            {value:"db-1", name:"「俺の藤井 2016 in さいたまスーパーアリーナ〜Tynamite!!〜」Blu-ray", image:"img/db-1.jpg", color:"#FF9300"},
+            {value:"db-2", name:"「ときめき♡宣伝部のどきどき♡クリスマスパーティー2019 ～夢に続く魔法のストーリー♪～」DVD&Blu-ray", image:"img/db-2.jpg", color:"#FF9300"},
+            {value:"dig-1", name:"辻野かなみソロ曲「ツヨクなる」", image:"img/dig-1.jpg", color:"#73D4F5", category:"DIGITAL"},
+            {value:"dig-2", name:"「ゼッタイだよ」", image:"img/dig-2.jpg", color:"#FF9300", category:"DIGITAL"},
+            {value:"dig-3", name:"かわいいメモリアル", image:"img/dig-3.jpg", color:"#FF9300", category:"DIGITAL"},
+            {value:"dig-4", name:"Sora", image:"img/dig-4.jpg", color:"#FF9300", category:"DIGITAL"},
+            {value:"dig-5", name:"リトライ、青春！", image:"img/dig-5.jpg", color:"#FF9300", category:"DIGITAL"},
+            {value:"dig-6", name:"きみにとっての幸せになりたいの", image:"img/dig-6.jpeg", color:"#FF9300", category:"DIGITAL"},
+            {value:"dig-7", name:"最上級にかわいいの！ - From THE FIRST TAKE", image:"img/dig-7.jpg", color:"#FF9300", category:"DIGITAL"},
+            {value:"dig-8", name:"プリンセスヒーロー", image:"img/dig-8.jpg", color:"#FF9300", category:"DIGITAL"},
+            {value:"dig-9", name:"こんなあたしはいかがですか", image:"img/dig-9.jpeg", color:"#FF9300", category:"DIGITAL"},
+            {value:"dig-10", name:"SHINY PINK♡", image:"img/dig-10.jpeg", color:"#F13B83", category:"DIGITAL"},
+            {value:"dig-11", name:"うぬぼれくらいでいいじゃない", image:"img/dig-11.jpg", color:"#904AA2", category:"DIGITAL"},
+            {value:"dig-12", name:"ひみつのふふふ", image:"img/dig-12.jpg", color:"#FF9300", category:"DIGITAL"},
+            {value:"dig-13", name:"Happy time", image:"img/dig-13.jpeg", color:"#73D4F5", category:"DIGITAL"},
+            {value:"dig-14", name:"キラキラミライ", image:"img/dig-14.jpg", color:"#FF9300", category:"DIGITAL"},
+            {value:"dig-15", name:"来世でも誇れる人生をっ！", image:"img/dig-15.jpg", color:"#36B45B", category:"DIGITAL"},
+            {value:"dig-16", name:"あっち向いてキュン", image:"img/dig-16.jpeg", color:"#FF9300", category:"DIGITAL"},
+            {value:"dig-17", name:"100000000万％愛♡", image:"img/dig-17.jpg", color:"#F3E219", category:"DIGITAL"},
+            {value:"dig-18", name:"画面越しのエンジェル", image:"img/dig-18.jpeg", color:"#FF9300", category:"DIGITAL"},
+            {value:"dig-19", name:"開花宣言！", image:"img/dig-19.jpg", color:"#FF9300", category:"DIGITAL"},
+            {value:"dig-20", name:"私がチョコです♡", image:"img/dig-20.jpg", color:"#FF9300", category:"DIGITAL"},
+            {value:"dig-21", name:"絶対的主人公", image:"img/dig-21.jpeg", color:"#FF9300", category:"DIGITAL"},
+            {value:"dig-22", name:"どりーむじゃんぼ！", image:"img/dig-22.jpg", color:"#FF9300", category:"DIGITAL"},
+            {value:"dig-23", name:"くらえ、乙女泣き！", image:"img/dig-23.jpg", color:"#FF9300", category:"DIGITAL"},
+        ];
+
+        //プルダウンに表示するグループの並び順（各グループ内は新しい曲が先頭になるよう逆順にする）
+        const CATEGORY_ORDER=["SINGLE", "ALBUM", "DIGITAL"];
+
+        //informationsからプルダウンのoptgroup/optionを生成する
+        function buildPlayerOptions(selectId){
+            const select=document.getElementById(selectId);
+            for(const category of CATEGORY_ORDER){
+                const items=informations.filter(item => item.category===category).reverse();
+                if(items.length===0){
+                    continue;
+                }
+                const optgroup=document.createElement("optgroup");
+                optgroup.label=category;
+                for(const item of items){
+                    const option=document.createElement("option");
+                    option.value=item.value;
+                    option.textContent=item.name;
+                    optgroup.appendChild(option);
+                }
+                select.appendChild(optgroup);
+            }
+        }
+        buildPlayerOptions("playerA");
+        buildPlayerOptions("playerB");
+
+        //指定したセレクトボックスで選ばれている曲情報を取得
+        function getPlayerInfo(selector){
+            return informations.find(item => item.value === $(selector).val());
+        }
+        //現在の手番のプレイヤー情報を取得
+        function getCurrentPlayerInfo(){
+            return getTurnString()==="black" ? getPlayerInfo("#playerA") : getPlayerInfo("#playerB");
+        }
+        //現在の手番でない方のプレイヤー情報を取得
+        function getOpponentPlayerInfo(){
+            return getTurnString()==="black" ? getPlayerInfo("#playerB") : getPlayerInfo("#playerA");
+        }
+        //「○○の番です」の表示を更新
+        function updateTurnMessage(){
+            $("#turn").text(getCurrentPlayerInfo().name+"の番です");
+        }
+
+        //長い曲名でも1行に収まるよう、はみ出す分だけ文字サイズを縮小する
+        function fitNameText(el){
+            el.style.fontSize="";
+            el.style.whiteSpace="nowrap";
+            let size=parseFloat(getComputedStyle(el).fontSize);
+            const minSize=11;
+            while(el.scrollWidth>el.clientWidth && size>minSize){
+                size-=1;
+                el.style.fontSize=size+"px";
+            }
+            if(el.scrollWidth>el.clientWidth){
+                el.style.whiteSpace="normal";
+            }
+        }
+
+        //カラーチェンジ（盤面の石の見た目と選択可能マスの色を選んだジャケットに合わせる）
+        function colorChange(){
+            let playerAinfo = getPlayerInfo("#playerA");
+            let playerBinfo = getPlayerInfo("#playerB");
+            $('.square[data-owner="black"]').css("background-image", "url(" + playerAinfo.image + ")");
+            $('.square[data-owner="white"]').css("background-image", "url(" + playerBinfo.image + ")");
+            $(".can-select").css("background-color", getCurrentPlayerInfo().color);
+        }
+
+        $("#playerA").change(function(){//changeはselectのvalueが変わったら発火
+            $("#start").removeClass("show");
+            $("#start").addClass("none");
+            let playerA = $("#playerA").val();
+            let playerB = $("#playerB").val();
+            let playerAinfo = getPlayerInfo("#playerA");
+            $("#playerAname").text(playerAinfo.name);
+            fitNameText(document.getElementById("playerAname"));
+            $("#ontheleftpc").css("background-image", "url(" + playerAinfo.image + ")");
+            $("#playerAimage").css("background-image", "url(" + playerAinfo.image + ")");
+            $('.square[data-owner="black"]').css("background-image", "url(" + playerAinfo.image + ")");
+            if(playerA && playerB){
+                $("#start").removeClass("shake");
+                $("#start").removeClass("none");
+                $("#start").removeClass("show").width(); //強制再描画
+                $("#start").addClass("show");
+            }
+        })
+        $("#playerB").change(function(){
+            $("#start").removeClass("show");
+            $("#start").addClass("none");
+            let playerA = $("#playerA").val();
+            let playerB = $("#playerB").val();
+            let playerBinfo = getPlayerInfo("#playerB");
+            $("#playerBname").text(playerBinfo.name);
+            fitNameText(document.getElementById("playerBname"));
+            $("#ontherightpc").css("background-image", "url(" + playerBinfo.image + ")");
+            $("#playerBimage").css("background-image", "url(" + playerBinfo.image + ")");
+            $('.square[data-owner="white"]').css("background-image", "url(" + playerBinfo.image + ")");
+            if(playerA && playerB){
+                $("#start").removeClass("shake");
+                $("#start").removeClass("none");
+                $("#start").removeClass("show").width();
+                $("#start").addClass("show");
+            }
+        })
+
+        //ランダムに順番を決める
+        function decideOrder(){
+            let randomCount = Math.floor(Math.random() * 10) + 10; // 10〜19回
+            let count = 0;
+            let interval = setInterval(function(){
+                changeTurn();
+                $("#board").addClass("board-lock"); // decideOrder時はボタンを押せないように
+                count++;
+                if(count >= randomCount){
+                    $("#board").removeClass("board-lock");
+                    clearInterval(interval);
+                }
+            }, 110);
+        }
+
+        $("#start").click(function(){
+            $("#start").removeClass("shake").width();
+            $("#start").addClass("shake");
+            setTimeout(function(){//押された1秒後に画面を消す
+                $("#firstgamen").addClass("none");
+                $("#secondgamen").removeClass("none");
+                decideOrder();
+                initializeEvent();
+            },1000);
+        });
+
+        function count(){
+            let countBlack=$("[data-owner=black]").length;
+            let countWhite=$("[data-owner=white]").length;
+            $(".t-score").text(countBlack);
+            $(".a-score").text(countWhite);
+        }
+
+        //マス目にイベントを設定
+        $(function(){
+            $(".square").click(clickSquareEvent);
+            //初期化ボタンを押した時のイベント
+            $("#btn-initialize").click(function(){
+                reset();
+                initializeEvent();
+                decideOrder();
+            })
+            $("#gotohome").click(function(){
+                window.location.reload();//リロードつまりページの再読み込み
+            })
+            //盤面を初期化
+            initializeEvent();
+        });
+
+        function reset(){
+            $(".square").css("background-image", "none");
+        }
+
+        const situation=document.getElementById("situation");
+
+        //マス目クリックイベント
+        function clickSquareEvent(){
+            //クリックされたマス目のオブジェクトを取得
+            let square=$(this);
+            //クリックされたマス目が選択できない場合はスキップ
+            if(!canSelect(square)){
+                return;
+            }
+            //マスの所有者を変更
+            changeOwner(square);
+
+            count();
+            colorChange();
+            //ゲーム終了
+            if(isGameEnd()){
+                toastEndMessage("ゲームが終了しました　");
+                return;
+            }
+            //次のターンに選択できるマスが存在しない
+            if(isPass()){
+                //次のターンに変更
+                changeTurn();
+                //changeturnしたので下のifでお互いにおけるか調べる
+                if(isPass()){
+                    toastEndMessage("選択できるマスがなくなりました　");
+                }else{
+                    let nowName = getCurrentPlayerInfo().name;
+                    let otherName = getOpponentPlayerInfo().name;
+                    $("#turn").text(otherName+"には選択できるマスがないので"+nowName+"の番です");
+                }
+                return;
+            }
+            updateTurnMessage();
+        }
+
+        //ゲーム終了を判定
+        function isGameEnd(){
+            return $(".square.selected").length==64;
+        }
+        //ゲーム終了メッセージを表示
+        function toastEndMessage(message){
+            let playerAinfo = getPlayerInfo("#playerA");
+            let playerBinfo = getPlayerInfo("#playerB");
+            let countBlack=$("[data-owner=black]").length;
+            let countWhite=$("[data-owner=white]").length;
+
+            if(countBlack==countWhite){
+                $("#turn").text(message+"引き分け");
+            }
+            else if(countBlack<countWhite){
+                $("#turn").text(playerBinfo.name+"の勝ち");
+            }
+            else{
+                $("#turn").text(playerAinfo.name+"の勝ち");
+            }
+        }
+        //番手がパスかどうか判定
+        function isPass(){
+            return $(".square.can-select").length==0;
+        }
+
+        //盤面を初期化
+        function initializeEvent(){
+            //マスの属性をリセットする
+            $(".square")
+            .removeClass("selected")
+            .attr("data-owner", "");
+            //奇数番手に戻す
+            isOddTurn=true;
+            //初期値設定
+            changeOwner(getTargetSquare(3, 4));
+            changeOwner(getTargetSquare(3, 3));
+            changeOwner(getTargetSquare(4, 3));
+            changeOwner(getTargetSquare(4, 4));
+
+            updateTurnMessage();
+            situation.textContent="";
+            colorChange();
+        }
+
+        //マスの所有者を変更
+        function changeOwner(square){
+            //マス目にピースを置く
+            putPiece(square, getTurnString());
+            //隣接するピースを反転
+            changeOwnerOpposite(square);
+            //ターンを変更
+            changeTurn();
+        }
+
+        //マス目にピースを置く
+        function putPiece(targetSquare, owner){
+            targetSquare.attr("data-owner", owner).addClass("selected piece-pop");
+            setTimeout(() => targetSquare.removeClass("piece-pop"), 250);
+        }
+
+        //ターンを示す文字列を取得
+        function getTurnString(){
+            return isOddTurn ? "black" : "white";
+        }
+        //ターンを変更する
+        function changeTurn(){
+            isOddTurn=!isOddTurn;
+            updateTurnMessage();
+            //選択可否を設定する
+            for(let elem of document.querySelectorAll(".square")){
+                if(canSelect($(elem))){//canSelectがtrueのとき、つまり選べるとき
+                    $(elem).addClass("can-select");
+                    $(elem).removeClass("cant-select");
+                }else{//canSelectがfalseのとき、つまり選べないとき
+                    $(elem).removeClass("can-select");
+                    $(elem).addClass("cant-select");
+                }
+            }
+            colorChange();
+        }
+
+        //指定位置のマス目オブジェクトを取得
+        function getTargetSquare(row, col){
+            return $(`[data-row="${row}"][data-col="${col}"]`);
+        }
+        //指定位置が盤面内か判定
+        function isOnBoard(row, col){
+            return row>=0 && row<=7 && col>=0 && col<=7;
+        }
+
+        //調査対象のマス目の状態を取得
+        function getSquareStatus(row, col){
+            let targetSquare=getTargetSquare(row, col);
+            //selectedクラスを持っていなければ未選択
+            if(!targetSquare.hasClass("selected")){
+                return SQUARE_STATUS_NOT_SELECTED;
+            }
+            //自分が所有している
+            if(getTurnString()==targetSquare.attr("data-owner")){
+                return SQUARE_STATUS_IS_OWNED;
+            }
+            //相手が所有している
+            return SQUARE_STATUS_IS_OTHER;
+        }
+
+        //指定方向に挟める自分の駒があれば、その位置を返す
+        function getFlipEndPos(row, col, dRow, dCol){
+            let targetRow=row+dRow;
+            let targetCol=col+dCol;
+            //隣接マスが相手所有でなければ対向先は存在しない
+            if(!isOnBoard(targetRow, targetCol) || getSquareStatus(targetRow, targetCol)!=SQUARE_STATUS_IS_OTHER){
+                return null;
+            }
+            targetRow+=dRow;
+            targetCol+=dCol;
+            while(isOnBoard(targetRow, targetCol)){
+                let status=getSquareStatus(targetRow, targetCol);
+                //選択されていないマスに到達した場合は対向先なし
+                if(status==SQUARE_STATUS_NOT_SELECTED){
+                    return null;
+                }
+                //自分の所有マスに到達した場合、その位置を返却
+                if(status==SQUARE_STATUS_IS_OWNED){
+                    return {row:targetRow, col:targetCol};
+                }
+                targetRow+=dRow;
+                targetCol+=dCol;
+            }
+            return null;
+        }
+
+        //指定方向の駒をひっくり返す
+        function flipDirection(row, col, dRow, dCol){
+            let endPos=getFlipEndPos(row, col, dRow, dCol);
+            if(endPos==null){
+                return;
+            }
+            let targetRow=row+dRow;
+            let targetCol=col+dCol;
+            while(targetRow!=endPos.row || targetCol!=endPos.col){
+                putPiece(getTargetSquare(targetRow, targetCol), getTurnString());
+                targetRow+=dRow;
+                targetCol+=dCol;
+            }
+        }
+
+        //所有者を変更（8方向すべてチェック）
+        function changeOwnerOpposite(square){
+            let row=square.data("row");
+            let col=square.data("col");
+            for(const {dRow, dCol} of DIRECTIONS){
+                flipDirection(row, col, dRow, dCol);
+            }
+        }
+
+        //指定されたマス目が選択できるか判定
+        function canSelect(square){
+            //既にピースが設定されている場合は選択不可
+            if(square.hasClass("selected")){
+                return false;
+            }
+            //いずれかの方向に挟める駒があれば選択可
+            let row=square.data("row");
+            let col=square.data("col");
+            return DIRECTIONS.some(({dRow, dCol}) => getFlipEndPos(row, col, dRow, dCol)!=null);
+        }
+    </script>
+</body>
+</html>
