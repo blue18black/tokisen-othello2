@@ -431,6 +431,66 @@
 
         /* スマホ横画面プレイ時：盤面が画面の高さに収まるようレイアウトを調整 */
         @media (orientation:landscape) and (hover:none) and (pointer:coarse){
+            html, body{
+                height:100%;
+                overflow:hidden;
+            }
+            #firstgamen:not(.none){
+                display:flex;
+                flex-direction:column;
+                height:100vh;
+                height:100dvh;
+                overflow:hidden;
+            }
+            .app-header{
+                flex:0 0 auto;
+                padding:2px 16px 0;
+            }
+            #title{
+                font-size:1.1rem;
+            }
+            .app-subtitle{
+                margin:0;
+                font-size:.7rem;
+            }
+            #centerbtn{
+                flex:0 0 auto;
+                padding:3px 16px;
+                gap:8px;
+            }
+            #leftbtn, #rightbtn{
+                padding:4px 10px;
+            }
+            #playerAname, #playerBname{
+                margin-bottom:2px;
+                font-size:.78rem;
+            }
+            select#playerA, select#playerB{
+                padding:3px 28px 3px 10px;
+                font-size:.75rem;
+            }
+            .preview-stage{
+                flex:1 1 auto;
+                min-height:0;
+            }
+            #picture{
+                height:100%;
+                padding:2px 16px;
+            }
+            #leftpc, #rightpc{
+                height:100%;
+            }
+            #ontheleftpc, #ontherightpc{
+                width:auto;
+                height:100%;
+                max-width:42vw;
+                aspect-ratio:1/1;
+            }
+            #vs{
+                width:32px;
+                height:32px;
+                font-size:.8rem;
+            }
             #secondgamen:not(.none){
                 display:flex;
                 flex-direction:column;
