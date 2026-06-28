@@ -315,11 +315,12 @@
             overflow:hidden;
         }
         .board-row{
+            display:flex;
             font-size:0;
         }
         .square{
-            width:3rem;
-            height:3rem;
+            width:12.5%;
+            aspect-ratio:1/1;
             margin:0;
             padding:0;
             border:1px solid rgba(0,0,0,.25);
@@ -392,9 +393,103 @@
         @media (max-width:380px){
             html{ font-size:12px; }
         }
+
+        /* スマホ縦持ち時：横画面への回転を促す案内 */
+        #rotate-overlay{
+            display:none;
+            position:fixed;
+            inset:0;
+            z-index:9999;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            gap:16px;
+            padding:24px;
+            text-align:center;
+            background:linear-gradient(160deg,#FFC267 0%,#FF9300 45%,#FF7A00 100%);
+            color:#fff;
+        }
+        #rotate-overlay .rotate-icon{
+            font-size:3rem;
+            animation:rotateHint 1.6s ease-in-out infinite;
+        }
+        #rotate-overlay p{
+            margin:0;
+            max-width:80%;
+            font-size:1.05rem;
+            font-weight:700;
+            line-height:1.6;
+        }
+        @keyframes rotateHint{
+            0%, 100%{ transform:rotate(0deg); }
+            50%{ transform:rotate(90deg); }
+        }
+        @media (orientation:portrait) and (hover:none) and (pointer:coarse){
+            #rotate-overlay{ display:flex; }
+            .app-shell{ display:none; }
+        }
+
+        /* スマホ横画面プレイ時：盤面が画面の高さに収まるようレイアウトを調整 */
+        @media (orientation:landscape) and (hover:none) and (pointer:coarse){
+            #secondgamen:not(.none){
+                display:flex;
+                flex-direction:column;
+                height:100vh;
+                height:100dvh;
+                overflow:hidden;
+            }
+            #fixed{
+                position:static;
+                flex:0 0 auto;
+                padding:8px 14px;
+            }
+            #contents{
+                margin-top:6px;
+                gap:16px;
+            }
+            #left, #right{
+                padding:4px 12px 4px 4px;
+            }
+            .image{
+                width:32px;
+                height:32px;
+            }
+            #osero{
+                flex:1 1 auto;
+                min-height:0;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                padding-top:0;
+            }
+            .container{
+                width:100%;
+                height:100%;
+            }
+            #board{
+                width:auto;
+                height:100%;
+                max-height:100%;
+                aspect-ratio:1/1;
+                margin:0 auto;
+            }
+            #controller{
+                top:6px;
+                left:6px;
+                gap:6px;
+            }
+            .btn-controller{
+                padding:6px 12px;
+                font-size:.75rem;
+            }
+        }
     </style>
 </head>
 <body>
+    <div id="rotate-overlay">
+        <div class="rotate-icon">📱</div>
+        <p>このゲームは横画面でお楽しみください<br>端末を回転させてください</p>
+    </div>
     <div class="app-shell">
         <div id="firstgamen">
             <header class="app-header">
